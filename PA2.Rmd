@@ -1,0 +1,94 @@
+---
+title: "Population health and economic consequences of weather events across the United States."
+author: "Konstantin Serditov"
+date: "08/22/2015"
+output: html_document
+---
+
+# Synopsis
+
+Immediately after the title, there should be a synopsis which describes and summarizes your analysis in at most 10 complete sentences.
+
+# Assessment goal
+* The basic goal of this assignment is to explore the NOAA Storm Database and answer some basic questions about severe weather events. You must use the database to answer the questions below and show the code for your entire analysis. Your analysis can consist of tables, figures, or other summaries. You may use any R package you want to support your analysis.
+
+# Your data analysis must address the following questions:
+
+* Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+
+* Across the United States, which types of events have the greatest economic consequences?
+
+Consider writing your report as if it were to be read by a government or municipal manager who might be responsible for preparing for severe weather events and will need to prioritize resources for different types of events. However, there is no need to make any specific recommendations in your report.
+
+# Data Processing
+
+1. Setting working directory, load libraries and read raw data for analysis.
+```{r, message=FALSE}
+setwd("D:/rprog/RepData_PeerAssessment2")
+library(sqldf)
+```
+
+2. Read data to data frame.
+```{r, cache=TRUE}
+# Use this line to download raw file (doesn't work with knitr)
+# download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2", destfile="./stormdata.csv.bz2")
+data <- read.csv("./stormdata.csv.bz2")
+```
+
+3. Summarize injuries and fatalities data by weather event types.
+```{r, cache=TRUE, message=FALSE}
+hsummary <- sqldf('SELECT
+	EVTYPE as evtype,
+	SUM(FATALITIES) AS fatalities,
+	SUM(INJURIES) AS injuries
+FROM data
+GROUP BY EVTYPE') # Calculating total fatalities and injuries by event types
+```
+
+4. Sort data by total number of injured and died people
+```{r}
+hsummary <- sqldf('SELECT evtype, fatalities, injuries FROM hsummary ORDER BY fatalities+injuries DESC')
+```
+5. Select top 10 events
+```{r}
+hsummary <- hsummary[1:10,]
+```
+
+6. Prepare matrix for barplot
+```{r}
+vec <- t(hsummary[,-1])
+colnames(vec) <- hsummary[,1]
+```
+
+7. Build barplot for most harmful events broken down by fatalities and injuries
+```{r, eval = FALSE}
+# Rotate labels
+par(las = 2)
+# Add more space for labels
+par(mar=c(6,5,4,2) + 0.1)
+# Build barplor
+barplot(vec, col = c("red","darkblue"), main = "Most harmful events with respect to population health", ylab = "Number of fatalities/injuries", cex.axis = 0.7, cex.names = 0.7, cex.lab = 0.7, legend.text = c("Fatalities","Injuries"))
+```
+
+# Results
+The plot below shows total number of fatalities and injuries for the top 10 most harmful weather events accross the United States for all history of observations.
+*Tornado* is by far the most harmful event. It's impact on population health exceeds anything else by 10 times.
+
+```{r, echo = FALSE}
+# This code is shown in Data Processing section, so it is hidden here since it is the same chunk.
+# Rotate labels
+par(las = 2)
+# Add more space for labels
+par(mar=c(6,5,4,2) + 0.1)
+# Build barplor
+barplot(vec, col = c("red","darkblue"), main = "Most harmful events with respect to population health", ylab = "Number of fatalities/injuries", cex.axis = 0.7, cex.names = 0.7, cex.lab = 0.7, legend.text = c("Fatalities","Injuries"))
+```
+
+There should be a section titled Results in which your results are presented.
+
+
+## Other assessment notes (TBD Remove)
+
+* Your analyis must have no more than three figures. Figures may have multiple plots in them (i.e. panel plots), but there cannot be more than three figures total.
+
+* You must show all your code for the work in your analysis document. This may make the document a bit verbose, but that is okay. In general, you should ensure that echo = TRUE for every code chunk (this is the default setting in knitr).
