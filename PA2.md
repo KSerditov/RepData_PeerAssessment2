@@ -16,20 +16,23 @@ Results show that tornado is most harmful for population while flooding causes m
 # Data Processing
 
 1. Setting working directory and load libraries.
-```{r, message=FALSE}
+
+```r
 setwd("D:/rprog/RepData_PeerAssessment2")
 library(sqldf)
 ```
 
 2. Read data to data frame.
-```{r, cache=TRUE}
+
+```r
 # Use this line to download raw file (doesn't work with knitr)
 # download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2", destfile="./stormdata.csv.bz2")
 data <- read.csv("./stormdata.csv.bz2")
 ```
 
 3. Summarize injuries and fatalities data by weather event types.
-```{r, cache=TRUE, message=FALSE}
+
+```r
 hsummary <- sqldf('SELECT
 	EVTYPE as evtype,
 	SUM(FATALITIES) AS fatalities,
@@ -39,23 +42,27 @@ GROUP BY EVTYPE') # Calculating total fatalities and injuries by event types
 ```
 
 4. Sort data by total number of injured and died people
-```{r}
+
+```r
 hsummary <- sqldf('SELECT evtype, fatalities, injuries FROM hsummary ORDER BY fatalities+injuries DESC')
 ```
 
 5. Select top 10 events
-```{r}
+
+```r
 hsummary <- hsummary[1:10,]
 ```
 
 6. Prepare matrix for barplot
-```{r}
+
+```r
 vec <- t(hsummary[,-1])
 colnames(vec) <- hsummary[,1]
 ```
 
 7. Build barplot for most harmful events broken down by fatalities and injuries
-```{r, eval = FALSE}
+
+```r
 # Rotate labels
 par(las = 2)
 # Add more space for labels
@@ -65,7 +72,8 @@ barplot(vec, col = c("red","darkblue"), main = "Most harmful events with respect
 ```
 
 8. Convert damage values to numbers.
-```{r}
+
+```r
 dmgdata <- sqldf('SELECT
 	EVTYPE as evtype,
 	CASE
@@ -102,7 +110,8 @@ FROM data')
 ```
 
 9. Calculate sums by event types in billions of dollars
-```{r}
+
+```r
 dmgs <- sqldf('SELECT
 	evtype,
 	SUM(propdmg*1.0/1000000000) AS propdmg,
@@ -112,7 +121,8 @@ GROUP BY evtype')
 ```
 
 10. Get rid of zero damage rows and sort data by total damage to property and crop.
-```{r}
+
+```r
 dmgs <- sqldf('SELECT
 	evtype,
 	propdmg,
@@ -123,14 +133,16 @@ ORDER BY propdmg + cropdmg DESC')
 ```
 
 11. Prepare matrix for barplot with top 10 events.
-```{r}
+
+```r
 dmgs <- dmgs[1:10,]
 vec2 <- t(dmgs[,-1])
 colnames(vec2) <- dmgs[,1]
 ```
 
 12. Build barplot for most economically influential events broken down by damage to property and crop.
-```{r, eval = FALSE}
+
+```r
 # Rotate labels
 par(las = 2)
 # Add more space for labels
@@ -144,26 +156,11 @@ The plot below shows total number of fatalities and injuries for the top 10 most
 
 **Tornado** is by far the most harmful event. It's impact on population health exceeds anything else by 10 times.
 
-```{r, echo = FALSE}
-# This code is shown in Data Processing section, so it is hidden here since it is the same chunk.
-# Rotate labels
-par(las = 2)
-# Add more space for labels
-par(mar=c(6,9,4,2))
-# Build barplor
-barplot(vec, col = c("red","darkblue"), main = "Most harmful events with respect to population health", ylab = "Number of fatalities/injuries", cex.axis = 0.7, cex.names = 0.7, cex.lab = 0.7, legend.text = c("Fatalities","Injuries"))
-```
+![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13-1.png) 
 
 The plot below shows total value of damage to property and crop caused by the top 10 most economically influential weather events accross the United States for all history of observations.
 
 **Floods** caused twice more ecnomical consequences than its next competitor **Hurricanes and Typhoons**. **Tonadoes** and **Storm surges** make significant impact as well.
 
-```{r, echo = FALSE}
-# Rotate labels
-par(las = 2)
-# Add more space for labels
-par(mar=c(6,9,4,2))
-# Build barplor
-barplot(vec2, col = c("red","darkblue"), main = "Most economically influential weather events", ylab = "Total damage, billions of dollars", cex.axis = 0.7, cex.names = 0.7, cex.lab = 0.7, legend.text = c("Property","Crop"))
-```
+![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14-1.png) 
 
